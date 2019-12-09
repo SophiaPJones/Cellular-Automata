@@ -26,8 +26,8 @@ public class Volume : MonoBehaviour
     
     public struct CellAction 
     {
-        public Vector3 position;
-        public CellActionID action;
+        public Vector3 position; //A Cell action can be described with the position of the cell,
+        public CellActionID action; //and the the action that needs to occur
         public CellAction(Vector3 position, CellActionID action)
         {
             this.position = position;
@@ -54,15 +54,13 @@ public class Volume : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
-        cellsWithin = GameObject.Find("Space");
+        cellsWithin = GameObject.Find("Space"); //The "Space" object has a "Volume" component and a "CellularAutomata" component
         cellularAutomata = cellsWithin.GetComponent<CellularAutomata>();
-        List<int> randomx = new List<int>();
-        List<int> randomy = new List<int>();
-        List<int> randomz = new List<int>();
 
         for (int i = 0; i < 150; i++)
         {
-            var randX = Random.RandomRange(0, 23);
+            //Lets spawn a bunch of random cells in a 23x23x23 volume.
+            var randX = Random.RandomRange(0, 23); 
             var randY = Random.RandomRange(0, 23);
             var randZ = Random.RandomRange(0, 23);
             AddCell(new Vector3(randX,randY,randZ));
@@ -75,14 +73,15 @@ public class Volume : MonoBehaviour
         var cellObj = GameObject.Instantiate(cellPrefab,
             position,
             Quaternion.identity,
-            GameObject.FindGameObjectWithTag("Space").transform);
+            GameObject.FindGameObjectWithTag("Space").transform); //We instantiate versions of this object. This is more efficient
+            //than creating entirely new object, especially since the prefab should have GPU instancing enabled.
         
-        cellObj.SetActive(true);
+        cellObj.SetActive(true); //Set the object as active; no point in creating the object if the playing ain't gonna be able to see it.
         
-        _interestingCells.AddOrUpdate(position, 
-                            true, 
-                    (oldKey, oldValue) => { return oldValue;});
-        _cells.AddOrUpdate(position, cellObj, (oldKey, oldVal) => { return oldVal;});
+        _interestingCells.AddOrUpdate(position, //We record the position of this cell in the _interestingCells dictionary
+                            true, //and set the value to "true", meaning that there is an active cell at that position.
+                    (oldKey, oldValue) => { return oldValue;}); //If for whatever reason we're unable to do that, just use the old value.
+        _cells.AddOrUpdate(position, cellObj, (oldKey, oldVal) => { return oldVal;}); //Store the actual cell in a seperate dictionary, also using the position as the key.
         
         for (var x = position.x - xUnit; x <= position.x + 1; x += xUnit)
         {
@@ -91,9 +90,12 @@ public class Volume : MonoBehaviour
                 for (var z = position.z - zUnit; z <= position.z + 1; z += zUnit)
                 {
                     if (x != position.x && y != position.y && z != position.z)
-                    {
+                    { 
+                    //We need to add every cell that is adjacent to the newly created cell to the _interestingCells dictionary.
+                    //Cells that are not bordering any active cells are effectively useless to us, 
+                    //so all we care about are the active cells and all of the cells immediately surrounding active cells.
                         _interestingCells.AddOrUpdate(new Vector3(x,y,z),
-                            false,
+                            false, //this one is just an interesting cell.
                             (oldKey, oldValue) => { return oldValue;});
                     }
                 }
@@ -105,10 +107,11 @@ public class Volume : MonoBehaviour
 
     public void RemoveCell(Vector3 position)
     {
-        GameObject gameobj;
-        _interestingCells.AddOrUpdate(position, false, (oldkey, oldval) => { return oldval;});
-        _cells.TryRemove(position, out gameobj);
-        gameobj.Destroy();
+        GameObject gameobj; //this variable will store the instanced game object.
+        _interestingCells.AddOrUpdate(position, false, (oldkey, oldval) => { return oldval;}); //We set that position to inactive in the _interestingCells dictionary
+        //we still want to consider this cell for the future, because it may be bordering some other cell that will later become active, meaning this cell may need to be referenced again.
+        _cells.TryRemove(position, out gameobj); //Remove the game object,
+        gameobj.Destroy();// then destroy it.
         return;
     }
     
@@ -158,15 +161,18 @@ public class Volume : MonoBehaviour
 
     public void DoStep()
     {
-        List<Action> actionList = new List<Action>();
-        foreach (var cell in _interestingCells)
+        List<Action> actionList = new List<Action>(); //We create a list of actions that will accumulate as the cellular automata resolves the step.
+        //We do this because we do not want the state of the volume to change while we're checking all of the cells.
+        //if that happens, then when we run CellRule to determine what to do to each cell, changes made to other cells
+        //will affect the behavior of different cells in the same step. This 
+        foreach (var cell in _interestingCells) //for every cell of interest
         {
-            var pos = cell.Key;
-            CellAction response = EvaluatePoint(pos);
-            switch (response.action)
+            var pos = cell.Key; //we store the position
+            CellAction response = EvaluatePoint(pos); //evaluate the point
+            switch (response.action) //then use the response to add an action to the list.
             {
                 case CellActionID.Create:
-                    actionList.Add(() => { AddCell(pos);});
+                    actionList.Add(() => { AddCell(pos);}); //Notice that this list takes an anonymouse function as an element.
                     Debug.Log(String.Format("Cell CREATED at {0}.", pos));
                     break;
                 case CellActionID.Destroy:
@@ -189,7 +195,7 @@ public class Volume : MonoBehaviour
 
         foreach (var action in actionList)
         {
-            action();
+            action();//now we execute every action that the list accumulated.
         }
         return;
     }
