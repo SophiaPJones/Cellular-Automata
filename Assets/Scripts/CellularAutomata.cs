@@ -1,12 +1,15 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
+using System.Threading;
+using System.Threading.Tasks;
 using UnityEngine;
 
 public class CellularAutomata : MonoBehaviour
 {
     // Start is called before the first frame update
     public Volume volume;
-    
+    public delegate void Task();
     void Start()
     {
         
@@ -17,7 +20,8 @@ public class CellularAutomata : MonoBehaviour
     {
         if (Input.GetKeyDown(KeyCode.Space))
         {
-            volume.DoStep();  
+            volume.DoStep();
         }
     }
 }
+

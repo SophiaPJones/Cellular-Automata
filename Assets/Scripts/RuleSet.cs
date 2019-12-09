@@ -12,9 +12,9 @@ public class RuleSet : MonoBehaviour
         this.volume = volume;
     }
 
-     public virtual Volume.CellAction CellRule(int neighbors, byte neighborCount, bool isCellOccupied)
+     public virtual Volume.CellActionID CellRule(int neighbors, byte neighborCount, bool isCellOccupied)
     {
-        return Volume.CellAction.Idle; 
+        return Volume.CellActionID.Idle; 
     }
 
 

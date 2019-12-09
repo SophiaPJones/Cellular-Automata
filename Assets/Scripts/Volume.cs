@@ -7,37 +7,82 @@ using System;
 using System.Collections;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Dynamic;
 using System.Linq;
+using System.Threading;
+using Aura2API;
 using UnityEditor.Experimental.GraphView;
+using UnityEditor.UI;
 using UnityEngine;
 using UnityEngine.Animations;
 using UnityEngine.UIElements;
+using Random = UnityEngine.Random;
 
 public class Volume : MonoBehaviour
-{
-    public enum CellAction {Destroy, Create, Idle, IgnorePos}
+{   
+    
+    
+    public enum CellActionID {Destroy, Create, Idle, IgnorePos} //We are going to define a set of actions that a cell can experience
+    
+    public struct CellAction 
+    {
+        public Vector3 position;
+        public CellActionID action;
+        public CellAction(Vector3 position, CellActionID action)
+        {
+            this.position = position;
+            this.action = action;
+        }
+    }
     
     public float stepTime = 2.0f;
     public int radius = 10;
-    public float xUnit, yUnit, zUnit = 1.0f;
+    public float xUnit = 1.0f;
+    public float yUnit = 1.0f;
+    public float zUnit = 1.0f;
     public RuleSet ruleSet;
-    
+    private GameObject cellsWithin;
+    private CellularAutomata cellularAutomata;
     public delegate void CellRuleSimple(byte neighborCount);
     public bool simpleCellRule = false;
+
+    public GameObject cellPrefab;
     
-    protected internal ConcurrentDictionary<Vector3, Cell> _cells = new ConcurrentDictionary<Vector3, Cell>();
-    protected internal HashSet<Vector3> _interestingCells;
-    
+    private ConcurrentDictionary<Vector3, bool> _interestingCells = new ConcurrentDictionary<Vector3, bool>();
+    private ConcurrentDictionary<Vector3, GameObject> _cells = new ConcurrentDictionary<Vector3, GameObject>();
+
     // Start is called before the first frame update
     void Start()
     {
-        AddCell(new Vector3(0,0,0));
+        cellsWithin = GameObject.Find("Space");
+        cellularAutomata = cellsWithin.GetComponent<CellularAutomata>();
+        List<int> randomx = new List<int>();
+        List<int> randomy = new List<int>();
+        List<int> randomz = new List<int>();
+
+        for (int i = 0; i < 150; i++)
+        {
+            var randX = Random.RandomRange(0, 23);
+            var randY = Random.RandomRange(0, 23);
+            var randZ = Random.RandomRange(0, 23);
+            AddCell(new Vector3(randX,randY,randZ));
+        }
+        return;
     }
 
     public void AddCell(Vector3 position)
     {
-        var cellObj = GameObject.CreatePrimitive(PrimitiveType.Cube);
-        _cells.TryAdd(position,cellObj.AddComponent<Cell>());
+        var cellObj = GameObject.Instantiate(cellPrefab,
+            position,
+            Quaternion.identity,
+            GameObject.FindGameObjectWithTag("Space").transform);
+        
+        cellObj.SetActive(true);
+        
+        _interestingCells.AddOrUpdate(position, 
+                            true, 
+                    (oldKey, oldValue) => { return oldValue;});
+        _cells.AddOrUpdate(position, cellObj, (oldKey, oldVal) => { return oldVal;});
         
         for (var x = position.x - xUnit; x <= position.x + 1; x += xUnit)
         {
@@ -45,16 +90,26 @@ public class Volume : MonoBehaviour
             {
                 for (var z = position.z - zUnit; z <= position.z + 1; z += zUnit)
                 {
-                    _interestingCells.Add(new Vector3(x,y,z));
+                    if (x != position.x && y != position.y && z != position.z)
+                    {
+                        _interestingCells.AddOrUpdate(new Vector3(x,y,z),
+                            false,
+                            (oldKey, oldValue) => { return oldValue;});
+                    }
                 }
             }
         }
+
+        return;
     }
 
     public void RemoveCell(Vector3 position)
     {
-        Cell value;
-        _cells.TryRemove(position, out value);
+        GameObject gameobj;
+        _interestingCells.AddOrUpdate(position, false, (oldkey, oldval) => { return oldval;});
+        _cells.TryRemove(position, out gameobj);
+        gameobj.Destroy();
+        return;
     }
     
     public CellAction EvaluatePoint(Vector3 position)
@@ -83,7 +138,7 @@ public class Volume : MonoBehaviour
                 for (var z = position.z - zUnit; z <= position.z + zUnit; z++)
                 {
                     var vec = new Vector3(x, y, z);
-                    if(_cells.ContainsKey(vec))
+                    if(_interestingCells.ContainsKey(vec))
                     {
                         if (position != vec)
                         {
@@ -97,33 +152,45 @@ public class Volume : MonoBehaviour
             }
         }
 
-        if (neighborCount == 0 && isCellOccupied == false) return CellAction.IgnorePos;
-        return ruleSet.CellRule(neighbors, neighborCount, isCellOccupied);
+        if (neighborCount == 0 && isCellOccupied == false) return new CellAction(position, CellActionID.IgnorePos);
+        return new CellAction(position, ruleSet.CellRule(neighbors, neighborCount, isCellOccupied));
     }
 
     public void DoStep()
     {
-        List<Action> actionQueue = new List<Action>();
-        foreach (var pos in _interestingCells)
+        List<Action> actionList = new List<Action>();
+        foreach (var cell in _interestingCells)
         {
-            var response = EvaluatePoint(pos);
-            if (response == CellAction.Create)
+            var pos = cell.Key;
+            CellAction response = EvaluatePoint(pos);
+            switch (response.action)
             {
-                actionQueue.Add(() => { AddCell(pos); });
-            }
-            else if (response == CellAction.Destroy)
-            {
-                actionQueue.Add(() => { RemoveCell(pos); });
-            }
-            else if(response == CellAction.IgnorePos)
-            {
-                actionQueue.Add(() => { _interestingCells.Remove(pos);});
+                case CellActionID.Create:
+                    actionList.Add(() => { AddCell(pos);});
+                    Debug.Log(String.Format("Cell CREATED at {0}.", pos));
+                    break;
+                case CellActionID.Destroy:
+                    actionList.Add(() => { RemoveCell(pos);});
+                    Debug.Log(String.Format("Cell REMOVED at {0}.", pos));
+                    break;
+                case CellActionID.IgnorePos:
+                    bool dump;
+                    actionList.Add(() =>
+                    {
+                        _interestingCells.TryRemove(pos,out dump);
+                        GameObject gameObj;
+                        _cells.TryRemove(pos, out gameObj);
+                        gameObj.Destroy();
+                    });
+                    Debug.Log(String.Format("Cell IGNORED at {0}.", pos));
+                    break;
             }
         }
-        
-        foreach(var action in actionQueue)
+
+        foreach (var action in actionList)
         {
             action();
         }
+        return;
     }
 }

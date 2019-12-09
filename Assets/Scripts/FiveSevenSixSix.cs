@@ -10,32 +10,32 @@ public class FiveSevenSixSix : RuleSet
         this.volume = volume;
     }
     
-    public override Volume.CellAction CellRule(int neighbors, byte neighborCount, bool isCellOccupied)
+    public override Volume.CellActionID CellRule(int neighbors, byte neighborCount, bool isCellOccupied)
     {
         if (isCellOccupied)
         {
-            if (neighborCount < 5)
+            if (neighborCount > 7)
             {
-                return Volume.CellAction.Destroy;
+                return Volume.CellActionID.Destroy;
             }
-            else if (neighborCount >= 7)
+            else if (neighborCount >= 5)
             {
-                return Volume.CellAction.Destroy;
+                return Volume.CellActionID.Idle;
             }
             else
             {
-                return Volume.CellAction.Idle;
+                return Volume.CellActionID.Destroy;
             }
         }
         else
         {
             if (neighborCount == 6)
             {
-                return Volume.CellAction.Create;
+                return Volume.CellActionID.Create;
             }
             else
             {
-                return Volume.CellAction.Idle;
+                return Volume.CellActionID.IgnorePos;
             }
         }
     }
