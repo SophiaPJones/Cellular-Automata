@@ -96,6 +96,7 @@ LightmapSettings:
     m_PVRFilteringAtrousPositionSigmaAO: 1
     m_ExportTrainingData: 0
     m_TrainingDataDestination: TrainingData
+    m_LightProbeSampleCountMultiplier: 4
   m_LightingDataAsset: {fileID: 0}
   m_UseShadowmask: 1
 --- !u!196 &4
@@ -202,13 +203,13 @@ MonoBehaviour:
   overrideColor: 0
   overridingColor: {r: 1, g: 1, b: 1, a: 1}
   useShadow: 1
-  shadowMapRenderTexture: {fileID: 1497477983}
+  shadowMapRenderTexture: {fileID: 628828642}
   useCookie: 1
   cookieMapRenderTexture: {fileID: 0}
   enableOutOfPhaseColor: 0
   outOfPhaseColorStrength: 0.1
   outOfPhaseColor: {r: 0, g: 1, b: 1, a: 1}
-  shadowDataRenderTexture: {fileID: 1764931732}
+  shadowDataRenderTexture: {fileID: 104476362}
   customDistanceFalloffThreshold: 0.5
   customDistanceFalloffPower: 2
   customCookieDistanceFalloffStartThreshold: 0.1
@@ -224,8 +225,9 @@ Light:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 24760126}
   m_Enabled: 1
-  serializedVersion: 9
+  serializedVersion: 10
   m_Type: 1
+  m_Shape: 0
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_Intensity: 1
   m_Range: 10
@@ -290,6 +292,76 @@ Transform:
   m_Father: {fileID: 0}
   m_RootOrder: 1
   m_LocalEulerAnglesHint: {x: 63.486004, y: 0, z: 0}
+--- !u!84 &104476362
+RenderTexture:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: 'Aura Directional Light : Shadow Data Render Texture'
+  m_ImageContentsHash:
+    serializedVersion: 2
+    Hash: 00000000000000000000000000000000
+  m_ForcedFallbackFormat: 4
+  m_DownscaleFallback: 0
+  serializedVersion: 3
+  m_Width: 32
+  m_Height: 1
+  m_AntiAliasing: 1
+  m_MipCount: -1
+  m_DepthFormat: 0
+  m_ColorFormat: 52
+  m_MipMap: 0
+  m_GenerateMips: 1
+  m_SRGB: 0
+  m_UseDynamicScale: 0
+  m_BindMS: 0
+  m_EnableCompatibleFormat: 1
+  m_TextureSettings:
+    serializedVersion: 2
+    m_FilterMode: 1
+    m_Aniso: 1
+    m_MipBias: 0
+    m_WrapU: 1
+    m_WrapV: 1
+    m_WrapW: 1
+  m_Dimension: 2
+  m_VolumeDepth: 1
+--- !u!84 &628828642
+RenderTexture:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: 'Aura Directional Light : Shadow Map Render Texture'
+  m_ImageContentsHash:
+    serializedVersion: 2
+    Hash: 00000000000000000000000000000000
+  m_ForcedFallbackFormat: 4
+  m_DownscaleFallback: 0
+  serializedVersion: 3
+  m_Width: 512
+  m_Height: 512
+  m_AntiAliasing: 1
+  m_MipCount: -1
+  m_DepthFormat: 0
+  m_ColorFormat: 52
+  m_MipMap: 0
+  m_GenerateMips: 1
+  m_SRGB: 0
+  m_UseDynamicScale: 0
+  m_BindMS: 0
+  m_EnableCompatibleFormat: 1
+  m_TextureSettings:
+    serializedVersion: 2
+    m_FilterMode: 1
+    m_Aniso: 1
+    m_MipBias: 0
+    m_WrapU: 1
+    m_WrapV: 1
+    m_WrapW: 1
+  m_Dimension: 2
+  m_VolumeDepth: 1
 --- !u!1 &920841003
 GameObject:
   m_ObjectHideFlags: 0
@@ -699,76 +771,6 @@ MonoBehaviour:
   tintStrength: 1
   useExtinction: 0
   extinction: 0.75
---- !u!84 &1497477983
-RenderTexture:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_Name: 'Aura Directional Light : Shadow Map Render Texture'
-  m_ImageContentsHash:
-    serializedVersion: 2
-    Hash: 00000000000000000000000000000000
-  m_ForcedFallbackFormat: 4
-  m_DownscaleFallback: 0
-  serializedVersion: 3
-  m_Width: 512
-  m_Height: 512
-  m_AntiAliasing: 1
-  m_MipCount: -1
-  m_DepthFormat: 0
-  m_ColorFormat: 52
-  m_MipMap: 0
-  m_GenerateMips: 1
-  m_SRGB: 0
-  m_UseDynamicScale: 0
-  m_BindMS: 0
-  m_EnableCompatibleFormat: 1
-  m_TextureSettings:
-    serializedVersion: 2
-    m_FilterMode: 1
-    m_Aniso: 1
-    m_MipBias: 0
-    m_WrapU: 1
-    m_WrapV: 1
-    m_WrapW: 1
-  m_Dimension: 2
-  m_VolumeDepth: 1
---- !u!84 &1764931732
-RenderTexture:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_Name: 'Aura Directional Light : Shadow Data Render Texture'
-  m_ImageContentsHash:
-    serializedVersion: 2
-    Hash: 00000000000000000000000000000000
-  m_ForcedFallbackFormat: 4
-  m_DownscaleFallback: 0
-  serializedVersion: 3
-  m_Width: 32
-  m_Height: 1
-  m_AntiAliasing: 1
-  m_MipCount: -1
-  m_DepthFormat: 0
-  m_ColorFormat: 52
-  m_MipMap: 0
-  m_GenerateMips: 1
-  m_SRGB: 0
-  m_UseDynamicScale: 0
-  m_BindMS: 0
-  m_EnableCompatibleFormat: 1
-  m_TextureSettings:
-    serializedVersion: 2
-    m_FilterMode: 1
-    m_Aniso: 1
-    m_MipBias: 0
-    m_WrapU: 1
-    m_WrapV: 1
-    m_WrapW: 1
-  m_Dimension: 2
-  m_VolumeDepth: 1
 --- !u!1 &2111704711
 GameObject:
   m_ObjectHideFlags: 0
@@ -834,6 +836,8 @@ MonoBehaviour:
   zUnit: 1
   ruleSet: {fileID: 2111704713}
   simpleCellRule: 0
+  cellPrefab: {fileID: 4737628563251922798, guid: 4d36254b958b3224d867d1bd762ab15b,
+    type: 3}
 --- !u!114 &2111704715
 MonoBehaviour:
   m_ObjectHideFlags: 0
