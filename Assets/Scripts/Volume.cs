@@ -195,16 +195,20 @@ public class Volume : MonoBehaviour
         // will affect the behavior of different cells in the same step.
         List<Action> actionList = new List<Action>();   
 
-        foreach (var cell in _interestingCells) //for every cell of interest
+        //for every cell of interest
+        foreach (var cell in _interestingCells) 
         {
-            var pos = cell.Key; //we store the position
+            // We store the position
+            Vector3 pos = cell.Key; 
 
-            CellAction response = EvaluatePoint(pos); //evaluate the point
+            //evaluate the point
+            CellAction response = EvaluatePoint(pos); 
 
-            switch (response.action) //then use the response to add an action to the list.
+            //then use the response to add an action to the list.
+            switch (response.action) 
             {
                 case CellActionID.Create:
-                    actionList.Add(() => { AddCell(pos);}); //Notice that this list takes an anonymouse function as an element.
+                    actionList.Add(() => { AddCell(pos);}); //Notice that this list takes an anonymous function as an element.
                     Debug.Log($"Cell CREATED at {pos}.");
                     break;
                 case CellActionID.Destroy:
